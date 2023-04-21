@@ -1,0 +1,47 @@
+#!/usr/bin/python3
+
+import sys
+from data_structs import CommonDataHandler
+from file_parser import FileParser
+from operation_type import OperationType
+from ride import Ride
+
+# read argument from command line
+n = len(sys.argv)
+if n < 2:
+    print("Please provide input file as argument as ./gatorTaxi file_name where file_name is input file")
+    exit(-1)
+
+# parse file and input argument from command line
+parser = FileParser(sys.argv[1])
+parsed = parser.ParseFile()
+
+data = CommonDataHandler()
+
+# run operations, take input and parameter from parsed lines, append output for all operations to an output file
+for entry in parsed:
+    operation, params = entry
+    if operation == OperationType.INSERT:
+        try:
+            data.Insert(Ride(params[0], params[1], params[2]))
+        except:
+            parser.AppendToOutput("Duplicate RideNumber")
+            break
+    elif operation == OperationType.GET_NEXT_RIDE:
+        next_ride = data.GetNextRide()
+        if next_ride.rideNumber != -1:
+            parser.AppendToOutput(str(next_ride))
+        else:
+            parser.AppendToOutput("No active ride requests")
+    elif operation == OperationType.PRINT_SINGLE:
+        r = data.Print(params[0])
+        if r.rideNumber == -1:
+            parser.AppendToOutput("(0,0,0)")
+        else:
+            parser.AppendToOutput(str(r))
+    elif operation == OperationType.PRINT_MULTIPLE:
+        parser.AppendToOutput(data.PrintRange(params[0], params[1]))
+    elif operation == OperationType.UPDATE_TRIP:
+        data.UpdateTrip(params[0], params[1])
+    elif operation == OperationType.CANCEL_RIDE:
+        data.CancelRide(params[0])
